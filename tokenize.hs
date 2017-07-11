@@ -46,13 +46,7 @@ main = do
              when debug $ putStrLn ""
 
 
-    _ -> getProgName >>= usage
-
-
-usage :: String -> IO ()
-usage progName = do
-  hPutStrLn stderr $ "Usage: " ++ progName ++ " file.txt"
-  exitFailure
+    _ -> showUsage [] []
 
 
 garbageLine :: Text -> Bool
