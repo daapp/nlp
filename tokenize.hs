@@ -40,9 +40,12 @@ main = do
             forM_ (filter garbageLine $ T.lines file) $ \l -> do
              when debug $ TIO.putStrLn l
 
-             let parts = filter unknown $ tokenize l
+             TIO.putStrLn
+               $ T.intercalate ", "
+               $ map (T.pack . show)
+               $ filter unknown
+               $ tokenize l
 
-             TIO.putStrLn $ T.intercalate ", " $ map (T.pack . show) parts
              when debug $ putStrLn ""
 
 
@@ -50,7 +53,7 @@ main = do
 
 
 garbageLine :: Text -> Bool
-garbageLine l = T.any isAlpha l
+garbageLine = T.any isAlpha
 
 
 tokenize :: Text -> [Part]
