@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+{- Split text into token for later analyze.
+-}
 
 import           Control.Monad                (forM_, when)
 import           Data.Char                    (isAlpha, isDigit, isSpace)
