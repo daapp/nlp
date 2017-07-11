@@ -1,31 +1,47 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 
-import           Control.Monad      (forM_)
-import           Data.Char          (isAlpha, isDigit, isSpace)
-import           Data.List          (find)
-import           Data.Text.Lazy     (Text)
-import qualified Data.Text.Lazy     as T
-import qualified Data.Text.Lazy.IO  as TIO
-import           System.Environment (getArgs, getProgName)
-import           System.Exit        (exitFailure)
-import           System.IO          (hPutStrLn, stderr)
+import           Control.Monad                (forM_, when)
+import           Data.Char                    (isAlpha, isDigit, isSpace)
+import           Data.List                    (find)
+import qualified Data.Map                     as M
+import           Data.Text.Lazy               (Text)
+import qualified Data.Text.Lazy               as T
+import qualified Data.Text.Lazy.IO            as TIO
+import           System.Console.GetOpt
+import           System.Console.GetOpt.Simple
+import           System.Environment           (getArgs, getProgName)
+import           System.Exit                  (exitFailure)
+import           System.IO                    (hPutStrLn, stderr)
 
 
-endOfSentence :: String
-endOfSentence = "?!."
+optDebug = "debug"
+optUnknown = "unknown"
+
 
 main :: IO ()
 main = do
-  args <- getArgs
+  let options = [ Option ['d'] [optDebug] (noArg optDebug) "Dump original text before tokens."
+                , Option ['u'] [optUnknown] (noArg optUnknown) "Show only Unknown tokens."
+                ]
+  (opts, args) <- getOptsArgs options [] ["file.txt"]
+
+  let debug = M.member "debug" opts
+  let unknown = if M.member "unknown" opts
+                then \t -> case t of
+                            Unknown _ -> True
+                            _         -> False
+                else const True
+
   case length args of
     1 -> do file <- TIO.readFile $ head args
             forM_ (filter garbageLine $ T.lines file) $ \l -> do
-             TIO.putStrLn l
-             let parts = tokenize l
+             when debug $ TIO.putStrLn l
+
+             let parts = filter unknown $ tokenize l
 
              TIO.putStrLn $ T.intercalate ", " $ map (T.pack . show) parts
-             putStrLn ""
+             when debug $ putStrLn ""
 
 
     _ -> getProgName >>= usage
@@ -39,10 +55,6 @@ usage progName = do
 
 garbageLine :: Text -> Bool
 garbageLine l = T.any isAlpha l
-
-
-splitLine :: Text -> [Text]
-splitLine = T.split (`elem` endOfSentence)
 
 
 tokenize :: Text -> [Part]
@@ -89,7 +101,7 @@ data Punctuation = Comma -- запятая
 instance Show Punctuation where
   show p = case lookup p punctuation of
              Nothing -> "Unknown punctuation"
-             Just s  -> "Punctuation " ++ show s
+             Just s  -> "Punctuation \"" ++ [s] ++ "\""
 
 
 punctuation :: [(Punctuation, Char)]
@@ -105,6 +117,8 @@ punctuation = [ (Comma, ',')
               , (Quotation, '"')
               , (QuotationOpen, '«')
               , (QuotationClose, '»')
+              , (QuotationOpen, '„')
+              , (QuotationClose, '“')
               , (Quote, '\'')
               , (Ellipsis, '…')
               , (Slash, '/')
