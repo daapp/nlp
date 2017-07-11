@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+{- Extract text from FictionBook file.
+-}
+
 import           Control.Monad          (when)
 import           Data.Char              (isSpace)
 import           Data.List              (dropWhileEnd, intercalate)
