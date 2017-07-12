@@ -3,6 +3,7 @@
 {- Split text into token for later analyze.
 -}
 
+import           Control.Applicative          ((<$>))
 import           Control.Monad                (forM_, liftM, when)
 import           Data.Char                    (isAlpha, isDigit, isSpace)
 import           Data.List                    (find, sortBy)
@@ -43,14 +44,13 @@ main = do
 
   punctuationTable <- case M.lookup optPunctuation opts of
                        Nothing -> return []
-                       Just filename -> do
-                         liftM (map (\(a:b:[]) -> (a, T.index b 0) ) .
-                                sortBy (\(ak:av:[]) (bk:bv:[]) -> ak `compare` bk) .
-                                filter (\ws -> length ws == 2) .
-                                map T.words .
-                                T.lines
-                               ) $
-                           TIO.readFile filename
+                       Just filename ->
+                         (map (\[a, b] -> (a, T.index b 0) ) .
+                          sortBy (\[ak, av] [bk, bv] -> ak `compare` bk) .
+                          filter (\ws -> length ws == 2) .
+                          map T.words .
+                          T.lines
+                         ) <$> TIO.readFile filename
 
   when debug $ do
     putStrLn "Punctuation table:"
@@ -102,19 +102,20 @@ instance Show Part where
 readPart :: PunctuationTable -> Text -> (Part, Maybe Text)
 readPart punctuationTable t =
   case T.head t' of
-    c | isAlpha c -> let w = T.takeWhile isAlpha t'
-                         rest = T.drop (T.length w) t'
-                    in (Word w, if T.null rest then Nothing else Just rest)
+    c | isAlpha c -> (Word w, if T.null rest then Nothing else Just rest)
+      where w = T.takeWhile isAlpha t'
+            rest = T.drop (T.length w) t'
 
-    c | isDigit c -> let n = T.takeWhile isDigit t'
-                         rest = T.drop (T.length n) t'
-                    in (Number n, if T.null rest then Nothing else Just rest)
+    c | isDigit c -> (Number n, if T.null rest then Nothing else Just rest)
+      where n = T.takeWhile isDigit t'
+            rest = T.drop (T.length n) t'
 
     c | isPunctuation c -> singleChar $ Punctuation $ findPunctuation c
 
-    c -> let u = T.singleton c
-             rest = T.drop (T.length u) t'
-        in (Unknown u, if T.null rest then Nothing else Just rest)
+    c -> (Unknown u, if T.null rest then Nothing else Just rest)
+      where u = T.singleton c
+            rest = T.drop (T.length u) t'
+
   where
     isPunctuation ch =
       case find (\(p, c) -> c == ch) punctuationTable of
