@@ -1,6 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 {- Split text into token for later analyze.
+
+Punctuation file is text file. Format is:
+Name Character
+
+where Name is name of punctuation symbol and Character is single character.
+
 -}
 
 import           Control.Applicative          ((<$>))
@@ -123,6 +129,6 @@ readPart punctuationTable t =
 
     findPunctuation :: Char -> Part
     findPunctuation ch =
-      case find (\(p, c) -> c == ch) punctuationTable of
-        Just (p, c) -> Punctuation p
+      case find (\(_, c) -> c == ch) punctuationTable of
+        Just (p, _) -> Punctuation p
         Nothing     -> Unknown $ T.singleton ch
