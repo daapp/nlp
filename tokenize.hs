@@ -110,23 +110,21 @@ readPart punctuationTable t =
       where n = T.takeWhile isDigit t'
             rest = T.drop (T.length n) t'
 
-    c | isPunctuation c -> singleChar $ Punctuation $ findPunctuation c
+    c | isPunctuation c -> (findPunctuation c, if T.null rest then Nothing else Just rest)
+      where rest = T.tail t'
 
     c -> (Unknown u, if T.null rest then Nothing else Just rest)
       where u = T.singleton c
             rest = T.drop (T.length u) t'
 
   where
-    isPunctuation ch =
-      case find (\(p, c) -> c == ch) punctuationTable of
-        Nothing -> False
-        Just _  -> True
+    isPunctuation :: Char -> Bool
+    isPunctuation ch = any ((ch ==) . snd) punctuationTable
+
     t' = T.dropWhile isSpace t
-    singleChar part =
-      let rest = T.tail t'
-      in (part, if T.null rest then Nothing else Just rest)
-    findPunctuation :: Char -> Punctuation
+
+    findPunctuation :: Char -> Part
     findPunctuation ch =
       case find (\(p, c) -> c == ch) punctuationTable of
-        Just (p, c) -> p
-        Nothing     -> error $ "Invalid punctuation \"" ++ show ch ++ "\""
+        Just (p, c) -> Punctuation p
+        Nothing     -> Unknown $ T.singleton ch
