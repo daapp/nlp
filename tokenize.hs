@@ -45,7 +45,7 @@ main = do
   punctuationTable <- case M.lookup optPunctuation opts of
                        Nothing -> return []
                        Just filename ->
-                         (map (\[a, b] -> (a, T.index b 0) ) .
+                         (map (\[a, b] -> (a, T.head b) ) .
                           sortBy (\[ak, av] [bk, bv] -> ak `compare` bk) .
                           filter (\ws -> length ws == 2) .
                           map T.words .
@@ -69,7 +69,6 @@ main = do
                $ tokenize punctuationTable l
 
              when debug $ putStrLn ""
-
 
     _ -> showUsage [] []
 
