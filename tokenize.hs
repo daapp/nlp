@@ -101,26 +101,25 @@ instance Show Part where
 readPart :: PunctuationTable -> Text -> (Part, Maybe Text)
 readPart punctuationTable t =
   case T.head t' of
-    c | isAlpha c -> (Word w, if T.null rest then Nothing else Just rest)
+    c | isAlpha c -> (Word w, theRest rest)
       where w = T.takeWhile isAlpha t'
             rest = T.drop (T.length w) t'
 
-    c | isDigit c -> (Number n, if T.null rest then Nothing else Just rest)
+    c | isDigit c -> (Number n, theRest rest)
       where n = T.takeWhile isDigit t'
             rest = T.drop (T.length n) t'
 
-    c | isPunctuation c -> (findPunctuation c, if T.null rest then Nothing else Just rest)
-      where rest = T.tail t'
+    c | isPunctuation c -> (findPunctuation c, theRest $ T.tail t')
 
-    c -> (Unknown u, if T.null rest then Nothing else Just rest)
-      where u = T.singleton c
-            rest = T.drop (T.length u) t'
+    c -> (Unknown $ T.singleton c, theRest $ T.tail t')
 
   where
     isPunctuation :: Char -> Bool
     isPunctuation ch = any ((ch ==) . snd) punctuationTable
 
     t' = T.dropWhile isSpace t
+
+    theRest rest = if T.null rest then Nothing else Just rest
 
     findPunctuation :: Char -> Part
     findPunctuation ch =
