@@ -1,0 +1,22 @@
+Comma ,
+Point .
+Colon :
+Dash -
+Dash –
+Dash —
+Plus +
+Question ?
+Exclamation !
+Quotation "
+QuotationOpen «
+QuotationClose »
+QuotationOpen „
+QuotationClose “
+Quote '
+Ellipsis …
+Slash /
+ParenOpen (
+ParenClose )
+Degree °
+Percent %
+
